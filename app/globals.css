@@ -1,0 +1,45 @@
+:root {
+  --primary: #ff7b00;
+}
+body{
+  background:#fff;
+  font-family: sans-serif;
+}
+.container{
+  max-width:400px;
+  margin:auto;
+  margin-top:60px;
+  padding:30px;
+  border-radius:16px;
+  border:1px solid #eee;
+  box-shadow:0 10px 25px rgba(0,0,0,.06);
+}
+h1{
+  color:#222;
+}
+button{
+  background:var(--primary);
+  color:#fff;
+  border-radius:10px;
+  padding:10px;
+  border:none;
+  width:100%;
+  font-size:16px;
+}
+a{
+  color:var(--primary);
+}
+input{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
+.label{
+  margin-top:10px;
+  font-weight:600;
+}
+.error{
+  color:red;
+  font-size:12px;
+}
