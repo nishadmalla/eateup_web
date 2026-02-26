@@ -43,3 +43,4 @@ input{
   color:red;
   font-size:12px;
 }
+@import "tailwindcss";
