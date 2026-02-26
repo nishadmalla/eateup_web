@@ -46,7 +46,17 @@ export default function SignUpPage() {
                         />
                     </div>
 
-                    
+                    <div className="space-y-2">
+                        <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Password</label>
+                        <input 
+                            type="password" 
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-black border border-zinc-800 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-zinc-500 transition-colors"
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
 
                     <button 
                         type="submit" 
