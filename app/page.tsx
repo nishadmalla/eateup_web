@@ -1,68 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Cookies from "js-cookie";
 
-export default function HomePage() {
-    const [restaurants, setRestaurants] = useState([]);
-    const [loading, setLoading] = useState(true);
+export default function UserDashboard() {
+    const [user, setUser] = useState<any>(null);
 
-    // Fetch the data directly inside the page
     useEffect(() => {
-        const getRestaurants = async () => {
-            try {
-                const response = await fetch("http://localhost:5050/api/restaurants");
-                const res = await response.json();
-                if (res.success) {
-                    setRestaurants(res.data);
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        getRestaurants();
+        // You can fetch the user's specific orders or profile here
+        const userRole = Cookies.get("role");
+        setUser({ role: userRole, name: "Foodie Friend" });
     }, []);
 
-    if (loading) {
-        return <div className="min-h-screen bg-[#0a0e14] text-white p-10">Loading restaurants...</div>;
-    }
+    const handleLogout = () => {
+        Cookies.remove("token");
+        Cookies.remove("role");
+        window.location.href = "/login";
+    };
 
     return (
-        <div className="min-h-screen bg-[#0a0e14] text-slate-200 p-8">
-            <div className="max-w-6xl mx-auto">
-                
-                <h1 className="text-3xl font-light tracking-widest text-white uppercase mb-10 border-b border-slate-800 pb-4">
-                    Eate Up Feed
-                </h1>
+        <div className="min-h-screen bg-black text-white p-10">
+            <nav className="flex justify-between items-center mb-10 border-b border-zinc-900 pb-6">
+                <h1 className="text-2xl font-black italic uppercase">Eate Up <span className="text-orange-500">.</span></h1>
+                <button onClick={handleLogout} className="bg-zinc-900 px-6 py-2 rounded-xl text-xs font-bold uppercase hover:text-red-500 transition-all">Logout</button>
+            </nav>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {restaurants.map((restaurant: any) => (
-                        <Link href={`/restaurant/${restaurant._id}`} key={restaurant._id}>
-                            <div className="bg-[#0f151d] border border-slate-800 rounded-xl p-4 hover:border-slate-500 transition-all cursor-pointer">
-                                
-                                {/* Image Box */}
-                                {restaurant.restaurantImage ? (
-                                    <img 
-                                        src={`http://localhost:5050${restaurant.restaurantImage}`} 
-                                        alt={restaurant.name}
-                                        className="w-full h-48 object-cover rounded-lg mb-4"
-                                    />
-                                ) : (
-                                    <div className="w-full h-48 bg-slate-900 rounded-lg mb-4 flex items-center justify-center text-slate-600">
-                                        No Image
-                                    </div>
-                                )}
-
-                                {/* Text Details */}
-                                <h2 className="text-xl font-bold text-white">{restaurant.name}</h2>
-                                <p className="text-sm text-slate-400 mt-1">{restaurant.address}</p>
-                            </div>
-                        </Link>
-                    ))}
+            <div className="max-w-4xl mx-auto">
+                <div className="bg-zinc-950 border border-zinc-900 p-8 rounded-3xl">
+                    <h2 className="text-3xl font-bold mb-2">Welcome back!</h2>
+                    <p className="text-zinc-500 uppercase text-xs tracking-widest">Your Account Type: <span className="text-orange-500">{user?.role}</span></p>
+                    
+                    <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-black p-6 rounded-2xl border border-zinc-800">
+                            <h3 className="font-bold mb-2">My Orders</h3>
+                            <p className="text-sm text-zinc-500">You haven't placed any orders yet. Hungry?</p>
+                        </div>
+                        <div className="bg-black p-6 rounded-2xl border border-zinc-800">
+                            <h3 className="font-bold mb-2">Favorite Restaurants</h3>
+                            <p className="text-sm text-zinc-500">Save your top spots here for quick access.</p>
+                        </div>
+                    </div>
                 </div>
-
             </div>
         </div>
     );
