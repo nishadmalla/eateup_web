@@ -3,45 +3,57 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 
-export default function UserDashboard() {
-    const [user, setUser] = useState<any>(null);
+export default function UserHomepage() {
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-        // You can fetch the user's specific orders or profile here
-        const userRole = Cookies.get("role");
-        setUser({ role: userRole, name: "Foodie Friend" });
+        setIsClient(true);
+        const role = Cookies.get("role");
+        setUserRole(role || null);
     }, []);
 
-    const handleLogout = () => {
-        Cookies.remove("token");
-        Cookies.remove("role");
-        window.location.href = "/login";
-    };
+    if (!isClient) return <div className="min-h-screen bg-black" />;
 
     return (
-        <div className="min-h-screen bg-black text-white p-10">
-            <nav className="flex justify-between items-center mb-10 border-b border-zinc-900 pb-6">
-                <h1 className="text-2xl font-black italic uppercase">Eate Up <span className="text-orange-500">.</span></h1>
-                <button onClick={handleLogout} className="bg-zinc-900 px-6 py-2 rounded-xl text-xs font-bold uppercase hover:text-red-500 transition-all">Logout</button>
-            </nav>
+        <div className="min-h-[calc(100vh-80px)] bg-black text-white font-sans selection:bg-orange-500/30">
+            <main className="max-w-6xl mx-auto p-6 md:p-10">
+                {/* Hero Banner */}
+                <div className="bg-zinc-950 border border-zinc-900 p-10 md:p-16 rounded-[40px] shadow-2xl relative overflow-hidden mb-12">
+                    <div className="relative z-10">
+                        <h2 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter italic">
+                            Craving Something? <br/>
+                            <span className="text-orange-500">We've Got It.</span>
+                        </h2>
+                        <p className="text-zinc-500 uppercase text-xs font-bold tracking-[0.2em] max-w-md mt-6">
+                            Discover the best restaurants, fast delivery, and exclusive deals right to your door.
+                        </p>
+                    </div>
+                    {/* Background Glow Effect */}
+                    <div className="absolute -top-32 -right-32 w-96 h-96 bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
+                </div>
 
-            <div className="max-w-4xl mx-auto">
-                <div className="bg-zinc-950 border border-zinc-900 p-8 rounded-3xl">
-                    <h2 className="text-3xl font-bold mb-2">Welcome back!</h2>
-                    <p className="text-zinc-500 uppercase text-xs tracking-widest">Your Account Type: <span className="text-orange-500">{user?.role}</span></p>
-                    
-                    <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-black p-6 rounded-2xl border border-zinc-800">
-                            <h3 className="font-bold mb-2">My Orders</h3>
-                            <p className="text-sm text-zinc-500">You haven't placed any orders yet. Hungry?</p>
+                {/* Dashboard Widgets (Only visible if logged in) */}
+                {userRole && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-zinc-950 border border-zinc-900 p-8 rounded-3xl hover:border-orange-500/30 transition-all group cursor-pointer">
+                            <div className="bg-zinc-900 w-12 h-12 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-600/20 transition-colors">
+                                <span className="text-xl">🍔</span>
+                            </div>
+                            <h3 className="text-lg font-bold mb-2">Browse Food</h3>
+                            <p className="text-sm text-zinc-500">Explore local restaurants and their menus.</p>
                         </div>
-                        <div className="bg-black p-6 rounded-2xl border border-zinc-800">
-                            <h3 className="font-bold mb-2">Favorite Restaurants</h3>
-                            <p className="text-sm text-zinc-500">Save your top spots here for quick access.</p>
+
+                        <div className="bg-zinc-950 border border-zinc-900 p-8 rounded-3xl hover:border-orange-500/30 transition-all group cursor-pointer">
+                            <div className="bg-zinc-900 w-12 h-12 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-600/20 transition-colors">
+                                <span className="text-xl">🛵</span>
+                            </div>
+                            <h3 className="text-lg font-bold mb-2">My Orders</h3>
+                            <p className="text-sm text-zinc-500">Track current deliveries and past history.</p>
                         </div>
                     </div>
-                </div>
-            </div>
+                )}
+            </main>
         </div>
     );
 }
