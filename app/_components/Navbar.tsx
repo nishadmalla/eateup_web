@@ -1,34 +1,46 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import Cookies from "js-cookie";
 
 export default function Navbar() {
-    return (
-        <nav className="sticky top-0 z-50 w-full bg-[#0a0e14]/80 backdrop-blur-md border-b border-slate-800/50">
-            <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                
-                {/* Logo */}
-                <Link href="/" className="text-2xl font-light tracking-widest text-white uppercase hover:opacity-80 transition-opacity">
-                    Eate Up
-                </Link>
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [profilePic, setProfilePic] = useState<string | null>(null);
 
-                {/* Right Side Actions */}
-                <div className="flex items-center gap-6">
-                    {/* User Profile / Admin Link */}
-                    <Link href="/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors tracking-wide">
+    useEffect(() => {
+        const token = Cookies.get("token");
+        if (token) {
+            setIsLoggedIn(true);
+            // Example: setProfilePic(localStorage.getItem("profilePic"));
+        }
+    }, []);
+
+    return (
+        <nav className="flex justify-between items-center p-6 md:px-12 border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50">
+            
+            <Link href="/" className="text-2xl font-black italic uppercase tracking-tighter text-white">
+                Eate Up <span className="text-orange-500">.</span>
+            </Link>
+            
+            <div className="flex items-center">
+                {isLoggedIn ? (
+                    /* Only the Profile Picture shows when logged in */
+                    <Link href="/profile" className="w-10 h-10 shrink-0 rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-zinc-800 hover:border-orange-500 transition-all shadow-lg">
+                        {profilePic ? (
+                            <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                            <svg className="w-6 h-6 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        )}
+                    </Link>
+                ) : (
+                    /* Super clean logged-out state */
+                    <Link href="/login" className="text-xs font-bold uppercase text-zinc-400 hover:text-white transition-colors py-2 tracking-widest">
                         Sign In
                     </Link>
-
-                    {/* Cart Button */}
-                    <button className="relative flex items-center justify-center p-2 text-slate-300 hover:text-white transition-colors group">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                        </svg>
-                        {/* Cart Badge (Shows number of items) */}
-                        <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white group-hover:bg-blue-500 transition-colors">
-                            0
-                        </span>
-                    </button>
-                </div>
-                
+                )}
             </div>
         </nav>
     );
