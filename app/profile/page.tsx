@@ -5,157 +5,230 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
-    const [fullName, setFullName] = useState("Loading...");
-    const [profilePic, setProfilePic] = useState<string | null>(null);
-    const [isEditingName, setIsEditingName] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
+  const [fullName, setFullName] = useState("Loading...");
+  const [email, setEmail] = useState("Loading...");
+  const [profilePic, setProfilePic] = useState<string | null>(null);
+  
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-    useEffect(() => {
-        // Placeholder for your backend fetch
-        setFullName("John Doe"); 
-    }, []);
-
-    const handleLogout = () => {
-        Cookies.remove("token");
-        Cookies.remove("role");
-        window.location.href = "/login";
-    };
-
-    const handleSaveName = async () => {
-        setIsLoading(true);
-        try {
-            // BACKEND CALL GOES HERE
-            await new Promise(resolve => setTimeout(resolve, 800)); // Simulating network
-            setIsEditingName(false);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
+  // 1. Fetch real user data from the backend when the page loads
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = Cookies.get("token");
+        if (!token) {
+          router.push("/login");
+          return;
         }
-    };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const objectUrl = URL.createObjectURL(file);
-            setProfilePic(objectUrl);
-            // BACKEND FILE UPLOAD GOES HERE
+        // Make sure you create this /me route in your Express backend!
+        const res = await fetch("http://localhost:5050/api/auth/me", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setFullName(data.user?.fullName || data.fullName || "User");
+          setEmail(data.user?.email || data.email || "No email found");
+          
+          // If you have profile pictures saved in your DB, set it here:
+          // if (data.user?.profileImage) setProfilePic(`http://localhost:5050${data.user.profileImage}`);
         }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
     };
 
-    return (
-        <div className="min-h-screen bg-black text-white relative font-sans selection:bg-orange-500/30 pb-12">
-            
-            <div className="max-w-md mx-auto pt-10 px-6">
-                
-                {/* 1. Top Navigation Bar (Absolute Positioning for perfect alignment) */}
-                <div className="relative flex justify-center items-center w-full mb-10">
-                    {/* Back Arrow - Pinned to absolute far left */}
-                    <button onClick={() => router.back()} className="absolute left-0 text-white hover:text-zinc-400 transition-colors">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    
-                    {/* Center Title - Perfectly centered */}
-                    <h1 className="text-xl font-bold tracking-wide">Profile</h1>
-                    
-                    {/* Right Edit Pencil - Pinned to absolute far right */}
-                    <button onClick={() => setIsEditingName(!isEditingName)} className="absolute right-0 text-white hover:text-orange-500 transition-colors">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                    </button>
-                </div>
+    fetchUserData();
+  }, [router]);
 
-                {/* 2. Premium Profile Picture & Name Display */}
-                <div className="flex flex-col items-center justify-center mb-12">
-                    
-                    {/* Avatar */}
-                    <div className="relative group cursor-pointer w-32 h-32">
-                        {/* Orange Gradient Border */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-orange-600 to-orange-400 rounded-full p-[3px] shadow-lg shadow-orange-600/20">
-                            <label className="relative flex w-full h-full bg-zinc-950 rounded-full overflow-hidden border-4 border-black cursor-pointer">
-                                {profilePic ? (
-                                    <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-zinc-900">
-                                        <svg className="w-12 h-12 text-zinc-500" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                                        </svg>
-                                    </div>
-                                )}
-                                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                            </label>
-                        </div>
-                    </div>
+  const handleLogout = () => {
+    Cookies.remove("token");
+    Cookies.remove("role");
+    window.location.href = "/login";
+  };
 
-                    {/* Display Name */}
-                    <div className="mt-5 text-center w-full">
-                        {isEditingName ? (
-                            <div className="flex flex-col items-center gap-3">
-                                <input 
-                                    type="text" 
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    className="bg-black border border-zinc-800 text-white px-4 py-2 rounded-xl text-center focus:outline-none focus:border-orange-500 font-bold w-3/4 mx-auto"
-                                    autoFocus
-                                />
-                                <div className="flex gap-4">
-                                    <button onClick={handleSaveName} disabled={isLoading} className="text-orange-500 text-xs font-black uppercase tracking-widest hover:text-orange-400">
-                                        {isLoading ? "Saving..." : "Save"}
-                                    </button>
-                                    <button onClick={() => setIsEditingName(false)} className="text-zinc-500 text-xs font-black uppercase tracking-widest hover:text-zinc-400">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <>
-                                <h2 className="text-2xl font-bold tracking-wide text-white">{fullName}</h2>
-                                {/* Location Pin */}
-                                <div className="flex items-center justify-center text-zinc-500 mt-2 text-sm font-medium">
-                                    <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" />
-                                    </svg>
-                                    <span>Lalitpur, Nepal</span>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
+  // 2. Save the new name to your backend
+  const handleSaveName = async () => {
+    setIsLoading(true);
+    try {
+      const token = Cookies.get("token");
+      
+      const res = await fetch("http://localhost:5050/api/auth/update-profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ fullName })
+      });
 
-                {/* 3. Extra Details */}
-                <div className="space-y-4">
-                    {/* Email Card (Read Only) */}
-                    <div className="bg-zinc-950/50 border border-zinc-900 p-5 rounded-3xl backdrop-blur-md">
-                        <div className="flex justify-between items-center opacity-70">
-                            <div>
-                                <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-1">Email Address</p>
-                                <p className="text-zinc-300 font-bold text-sm">user@example.com</p>
-                            </div>
-                            <svg className="w-5 h-5 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
+      if (res.ok) {
+        setIsEditingName(false);
+      } else {
+        alert("Failed to update name");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-                {/* 4. Danger Zone (Logout) */}
-                <div className="mt-16">
-                    <button 
-                        onClick={handleLogout}
-                        className="w-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white font-black tracking-widest uppercase py-4 rounded-3xl transition-all flex items-center justify-center gap-2 group"
-                    >
-                        <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Logout
-                    </button>
-                </div>
+  // 3. Upload the image directly to your Multer middleware
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Show preview instantly
+      const objectUrl = URL.createObjectURL(file);
+      setProfilePic(objectUrl);
+      
+      // Send to backend using FormData
+      const formData = new FormData();
+      formData.append("profileImage", file); // Matches your uploads.single('profileImage')
+      
+      try {
+        const token = Cookies.get("token");
+        await fetch("http://localhost:5050/api/auth/update-profile", {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${token}` // No Content-Type needed for FormData!
+          },
+          body: formData
+        });
+      } catch (error) {
+        console.error("Image upload failed:", error);
+      }
+    }
+  };
 
-            </div>
+  return (
+    <div className="min-h-screen bg-black text-white relative font-sans overflow-hidden">
+      
+      {/* Background Glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,115,0,0.15),transparent_40%)] pointer-events-none" />
+
+      <div className="relative max-w-md mx-auto pt-12 px-6 pb-16">
+        
+        {/* Top Bar */}
+        <div className="relative flex justify-center items-center w-full mb-12">
+          <button 
+            onClick={() => router.back()} 
+            className="absolute left-0 p-2 rounded-full hover:bg-white/5 transition-all"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <h1 className="text-2xl font-extrabold tracking-wide">
+            Profile
+          </h1>
         </div>
-    );
+
+        {/* Profile Section */}
+        <div className="flex flex-col items-center mb-14">
+
+          {/* Avatar */}
+          <div className="relative group w-36 h-36">
+            
+            {/* Gradient Ring */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-orange-600 via-orange-400 to-yellow-400 p-[3px] opacity-80 group-hover:opacity-100 transition">
+              <div className="w-full h-full bg-black rounded-full" />
+            </div>
+
+            <label className="absolute inset-1 rounded-full overflow-hidden cursor-pointer border border-zinc-800">
+              {profilePic ? (
+                <img 
+                  src={profilePic} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-zinc-900 text-4xl font-bold text-zinc-500 uppercase">
+                  {fullName !== "Loading..." ? fullName.charAt(0) : "?"}
+                </div>
+              )}
+
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-sm font-semibold transition">
+                Change
+              </div>
+
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+            </label>
+          </div>
+
+          {/* Name Section & Edit Button */}
+          <div className="mt-6 text-center w-full flex flex-col items-center">
+            {isEditingName ? (
+              <div className="flex flex-col items-center gap-4 w-full">
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="bg-zinc-900 border border-zinc-700 px-4 py-3 rounded-2xl text-center text-lg font-bold focus:outline-none focus:border-orange-500 w-3/4 transition"
+                  autoFocus
+                />
+                <div className="flex gap-6">
+                  <button 
+                    onClick={handleSaveName}
+                    disabled={isLoading}
+                    className="text-orange-500 font-bold hover:scale-105 active:scale-95 transition disabled:opacity-50"
+                  >
+                    {isLoading ? "Saving..." : "Save"}
+                  </button>
+                  <button 
+                    onClick={() => setIsEditingName(false)}
+                    className="text-zinc-500 hover:text-zinc-300 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-3xl font-extrabold tracking-tight">
+                  {fullName}
+                </h2>
+                
+                {/* Edit Button directly below the name */}
+                <button 
+                  onClick={() => setIsEditingName(true)}
+                  className="mt-3 flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-medium text-zinc-300 transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                  Edit Profile
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Email Card */}
+        <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-3xl shadow-xl mb-10 hover:border-orange-500/30 transition-all">
+          <p className="text-xs text-zinc-400 uppercase tracking-widest mb-2">
+            Email Address
+          </p>
+          <p className="text-lg font-semibold text-zinc-200">
+            {email}
+          </p>
+        </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full py-4 rounded-3xl bg-red-500/10 border border-red-500/30 text-red-500 font-bold tracking-wide hover:bg-red-500 hover:text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+        >
+          Logout
+        </button>
+
+      </div>
+    </div>
+  );
 }
